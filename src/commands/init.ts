@@ -19,7 +19,7 @@ export interface InitOptions {
 }
 
 export async function initCommand(projectName?: string, options: InitOptions = {}) {
-  console.log(chalk.blue.bold('\n🚀 Next.js CLI Configurator\n'));
+  console.log(chalk.blue.bold('\n🚀 Project CLI Configurator\n'));
 
   try {
     if (!projectName) {
@@ -42,30 +42,25 @@ export async function initCommand(projectName?: string, options: InitOptions = {
       projectName = namePrompt.projectName;
     }
 
-    // Get Next.js initialization options
-    const nextjsOptions = await getNextjsOptions();
-    
-    // Create Next.js app
-    await createNextjsApp(projectName!, nextjsOptions, options);
+    // Ask what type of project they want to create
+    const projectTypeAnswer = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'projectType',
+        message: 'What type of project would you like to create?',
+        choices: [
+          { name: 'Next.js Project', value: 'nextjs' },
+          { name: 'TypeScript Project', value: 'typescript' }
+        ],
+        default: 'nextjs'
+      }
+    ]);
 
-    // Get additional configuration options
-    const configOptions = await getConfigurationOptions();
-
-    // Apply configurations
-    const configManager = new ConfigurationManager(projectName!, nextjsOptions.packageManager || 'npm');
-    await configManager.applyConfigurations(configOptions);
-
-    // Apply template
-    const templateManager = new TemplateManager(projectName!);
-    await templateManager.applyTemplate(options.template || 'default');
-
-    console.log(chalk.green.bold(`\n✅ Project ${projectName} has been successfully created and configured!\n`));
-    console.log(chalk.cyan('Next steps:'));
-    console.log(chalk.cyan(`  cd ${projectName}`));
-    
-    const packageManager = nextjsOptions.packageManager || 'npm';
-    const devCommand = packageManager === 'npm' ? 'npm run dev' : `${packageManager} dev`;
-    console.log(chalk.cyan(`  ${devCommand}`));
+    if (projectTypeAnswer.projectType === 'nextjs') {
+      await createNextjsProject(projectName!, options);
+    } else {
+      await createTypescriptProject(projectName!, options);
+    }
 
   } catch (error) {
     console.error(chalk.red.bold('\n❌ Error creating project:'), error);
@@ -174,6 +169,172 @@ async function getConfigurationOptions() {
   ]);
 }
 
+async function getTypescriptOptions() {
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'packageManager',
+      message: 'Which package manager would you like to use?',
+      choices: [
+        { name: 'Bun (recommended)', value: 'bun' },
+        { name: 'npm', value: 'npm' },
+        { name: 'pnpm', value: 'pnpm' },
+        { name: 'Yarn', value: 'yarn' }
+      ],
+      default: 'bun'
+    }
+  ]);
+
+  return answers;
+}
+
+async function getTypescriptConfigurationOptions() {
+  return await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'prettier',
+      message: 'Would you like to configure Prettier?',
+      default: true
+    },
+    {
+      type: 'confirm',
+      name: 'eslint',
+      message: 'Would you like to configure ESLint?',
+      default: true
+    },
+    {
+      type: 'confirm',
+      name: 'husky',
+      message: 'Would you like to set up Husky for git hooks?',
+      default: true
+    }
+  ]);
+}
+
+async function createTypescriptApp(projectName: string, typescriptOptions: any, options: InitOptions) {
+  const spinner = ora('Creating TypeScript project...').start();
+
+  try {
+    const projectPath = path.resolve(process.cwd(), projectName);
+    await fs.ensureDir(projectPath);
+
+    const args = ['init', '-y'];
+    
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn('bun', args, {
+        cwd: projectPath,
+        stdio: 'inherit',
+        shell: true
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`bun init failed with code ${code}`));
+        }
+      });
+
+      child.on('error', (error) => {
+        reject(error);
+      });
+    });
+
+    // Update package.json to add TypeScript and other dependencies
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    const packageJson = await fs.readJson(packageJsonPath);
+
+    // Add TypeScript and @types/node as dependencies
+    packageJson.devDependencies = packageJson.devDependencies || {};
+    packageJson.devDependencies.typescript = '^5.0.0';
+    packageJson.devDependencies['@types/node'] = '^20.0.0';
+
+    // Add scripts
+    packageJson.scripts = packageJson.scripts || {};
+    packageJson.scripts.build = 'tsc';
+    packageJson.scripts.dev = 'tsc --watch';
+    packageJson.scripts.start = 'node dist/index.js';
+
+    await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
+    // Create tsconfig.json
+    const tsconfigContent = {
+      compilerOptions: {
+        target: 'ES2022',
+        module: 'commonjs',
+        lib: ['ES2022'],
+        outDir: './dist',
+        rootDir: './src',
+        strict: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        declaration: true,
+        declarationMap: true,
+        sourceMap: true
+      },
+      include: ['src/**/*'],
+      exclude: ['node_modules', 'dist', '**/*.test.ts', '**/*.spec.ts']
+    };
+
+    await fs.writeJson(path.join(projectPath, 'tsconfig.json'), tsconfigContent, { spaces: 2 });
+
+    // Create src directory and index.ts
+    const srcDir = path.join(projectPath, 'src');
+    await fs.ensureDir(srcDir);
+
+    const indexContent = `console.log('Hello, TypeScript!');
+
+export {};
+`;
+
+    await fs.writeFile(path.join(srcDir, 'index.ts'), indexContent);
+
+    // Install dependencies using the selected package manager
+    if (typescriptOptions.packageManager !== 'bun') {
+      const installArgs = getPackageInstallArgs(typescriptOptions.packageManager);
+      
+      await new Promise<void>((resolve, reject) => {
+        const child = spawn(typescriptOptions.packageManager, installArgs, {
+          cwd: projectPath,
+          stdio: 'inherit',
+          shell: true
+        });
+
+        child.on('close', (code) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`Package installation failed with code ${code}`));
+          }
+        });
+
+        child.on('error', (error) => {
+          reject(error);
+        });
+      });
+    }
+
+    spinner.succeed('TypeScript project created successfully');
+  } catch (error) {
+    spinner.fail('Failed to create TypeScript project');
+    throw error;
+  }
+}
+
+function getPackageInstallArgs(packageManager: string): string[] {
+  switch (packageManager) {
+    case 'npm':
+      return ['install'];
+    case 'yarn':
+      return ['install'];
+    case 'pnpm':
+      return ['install'];
+    default:
+      return ['install'];
+  }
+}
+
 async function createNextjsApp(projectName: string, nextjsOptions: any, options: InitOptions) {
   const spinner = ora('Creating Next.js application...').start();
 
@@ -259,4 +420,56 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
       clearTimeout(timeout);
     });
   });
+}
+
+async function createNextjsProject(projectName: string, options: InitOptions) {
+  // Get Next.js initialization options
+  const nextjsOptions = await getNextjsOptions();
+  
+  // Create Next.js app
+  await createNextjsApp(projectName, nextjsOptions, options);
+
+  // Get additional configuration options
+  const configOptions = await getConfigurationOptions();
+
+  // Apply configurations
+  const configManager = new ConfigurationManager(projectName, nextjsOptions.packageManager || 'npm');
+  await configManager.applyConfigurations(configOptions);
+
+  // Apply template
+  const templateManager = new TemplateManager(projectName);
+  await templateManager.applyTemplate(options.template || 'default');
+
+  console.log(chalk.green.bold(`\n✅ Project ${projectName} has been successfully created and configured!\n`));
+  console.log(chalk.cyan('Next steps:'));
+  console.log(chalk.cyan(`  cd ${projectName}`));
+  
+  const packageManager = nextjsOptions.packageManager || 'npm';
+  const devCommand = packageManager === 'npm' ? 'npm run dev' : `${packageManager} dev`;
+  console.log(chalk.cyan(`  ${devCommand}`));
+}
+
+async function createTypescriptProject(projectName: string, options: InitOptions) {
+  // Get TypeScript project options
+  const typescriptOptions = await getTypescriptOptions();
+  
+  // Create TypeScript project directory and initialize
+  await createTypescriptApp(projectName, typescriptOptions, options);
+
+  // Get additional configuration options
+  const configOptions = await getTypescriptConfigurationOptions();
+
+  // Apply configurations
+  const configManager = new ConfigurationManager(projectName, typescriptOptions.packageManager || 'bun');
+  await configManager.applyConfigurations(configOptions);
+
+  console.log(chalk.green.bold(`\n✅ TypeScript project ${projectName} has been successfully created and configured!\n`));
+  console.log(chalk.cyan('Next steps:'));
+  console.log(chalk.cyan(`  cd ${projectName}`));
+  
+  const packageManager = typescriptOptions.packageManager || 'bun';
+  const runCommand = packageManager === 'npm' ? 'npm run start' : 
+                    packageManager === 'bun' ? 'bun run index.ts' : 
+                    `${packageManager} start`;
+  console.log(chalk.cyan(`  ${runCommand}`));
 }

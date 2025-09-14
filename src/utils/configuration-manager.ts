@@ -7,7 +7,8 @@ import chalk from 'chalk';
 export interface ConfigurationOptions {
   prettier: boolean;
   husky: boolean;
-  shadcn: boolean;
+  shadcn?: boolean;
+  eslint?: boolean;
 }
 
 export class ConfigurationManager {
@@ -22,6 +23,10 @@ export class ConfigurationManager {
   async applyConfigurations(options: ConfigurationOptions): Promise<void> {
     if (options.prettier) {
       await this.setupPrettier();
+    }
+
+    if (options.eslint) {
+      await this.setupEslint();
     }
 
     if (options.husky) {
@@ -83,17 +88,77 @@ build
     }
   }
 
+  private async setupEslint(): Promise<void> {
+    const spinner = ora('Setting up ESLint...').start();
+
+    try {
+      await this.installPackages([
+        'eslint',
+        '@typescript-eslint/parser',
+        '@typescript-eslint/eslint-plugin',
+        '@eslint/js',
+        'typescript-eslint'
+      ], true);
+
+      const eslintConfigContent = `import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default [
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.json',
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      '*.js',
+      '*.d.ts',
+    ],
+  },
+];
+`;
+
+      await fs.writeFile(path.join(this.projectPath, 'eslint.config.js'), eslintConfigContent);
+
+      // Update package.json scripts
+      await this.updatePackageJsonScripts({
+        'lint': 'eslint . && prettier --check .',
+        'lint:fix': 'eslint . --fix && prettier --write .'
+      });
+
+      spinner.succeed('ESLint configured successfully');
+    } catch (error) {
+      spinner.fail('Failed to setup ESLint');
+      throw error;
+    }
+  }
+
   private async setupHusky(): Promise<void> {
     const spinner = ora('Setting up Husky...').start();
 
     try {
-      // Install Husky and lint-staged using the selected package manager
       await this.installPackages(['husky', 'lint-staged'], true);
 
-      // Initialize Husky
       await this.runCommand('npx', ['husky', 'init']);
 
-      // Create pre-commit hook
       const preCommitHook = `#!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
@@ -103,12 +168,11 @@ npx lint-staged
       await fs.ensureDir(path.join(this.projectPath, '.husky'));
       await fs.writeFile(path.join(this.projectPath, '.husky', 'pre-commit'), preCommitHook);
 
-      // Update package.json with lint-staged config
       const packageJsonPath = path.join(this.projectPath, 'package.json');
       const packageJson = await fs.readJson(packageJsonPath);
       
       packageJson['lint-staged'] = {
-        '*.{js,jsx,ts,tsx}': ['eslint --fix', 'prettier --write'],
+        '*.{js,jsx,ts,tsx}': ['eslint --cache --fix', 'prettier --write'],
         '*.{json,css,md}': ['prettier --write']
       };
 
