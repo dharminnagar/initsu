@@ -1,0 +1,31 @@
+# Source files
+src/
+tsconfig.json
+eslint.config.mts
+
+# Development files
+.husky/
+.vscode/
+.github/
+jest.config.js
+bun.lock
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+
+# Environment and config files
+.env*
+.prettierrc
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Git
+.git/
+.gitignore

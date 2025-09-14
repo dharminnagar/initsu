@@ -1,113 +1,122 @@
-# Next.js CLI Configurator
+# Initsu
 
-A powerful CLI tool to initialize and configure Next.js repositories with various templates and configurations. This tool streamlines the setup process by automating common development configurations and applying custom templates.
+<div align="center">
+
+```
+ ____            __
+/\  _`\         /\ \__
+\ \ \/\ \    ___\ \ ,_\  ___   __  __
+ \ \ \ \ \ /' _ `\ \ \/  /',__\/\ \/\ \
+  \ \ \_\ \/\ \/\ \ \ \_/\__, `\ \ \_\ \
+   \ \____/\ \_\ \_\ \__\/\____/\ \____/
+    \/___/  \/_/\/_/\/__/\/___/  \/___/
+```
+
+**⚡ Modern Project Scaffolding for Next.js & TypeScript**
+
+_Don't spend time on setup, start coding faster!_
+
+[![npm version](https://badge.fury.io/js/initsu.svg)](https://badge.fury.io/js/initsu)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
 
 ## Features
 
-- 🚀 **Next.js Initialization**: Interactive setup with all Next.js options
-- 🎨 **Code Formatting**: Automatic Prettier configuration
-- 🪝 **Git Hooks**: Husky setup with pre-commit hooks
-- 🎯 **Linting**: ESLint integration with Prettier
-- 🌟 **UI Components**: shadcn/ui installation and setup
-- 📋 **Template System**: Modular template system for future extensibility
-- 💻 **TypeScript Support**: Built with TypeScript for better developer experience
+**Multi Project Support**
 
-## Installation
+- Next.js projects with full configuration
+- Pure TypeScript projects
+- (more coming soon)
 
-### Global Installation
+**Smart Configuration**
 
-```bash
-npm install -g nextjs-cli-configurator
-```
+- ESLint + Prettier + Husky pre-configured
+- TypeScript setup with modern configs
+- Package manager choice (npm, pnpm, yarn, bun)
 
-### Local Installation
+**Next.js Extras**
 
-```bash
-npm install nextjs-cli-configurator
-```
-
-## Usage
-
-### Initialize a new Next.js project
-
-```bash
-nextjs-init init my-project
-```
-
-### Initialize with options
-
-```bash
-nextjs-init init my-project --template default --skip-install
-```
-
-### Interactive mode
-
-```bash
-nextjs-init init
-```
-
-## Configuration Options
-
-The CLI will interactively ask you about:
-
-### Next.js Setup
-
-- TypeScript support
-- ESLint configuration
 - Tailwind CSS integration
-- `src/` directory structure
-- App Router (recommended)
+- shadcn/ui component library setup
+- App Router or Pages Router
 - Custom import aliases
 
-### Additional Configurations
+## Quick Start
 
-- **Prettier**: Code formatting with opinionated defaults
-- **Husky**: Git hooks for pre-commit linting and formatting
-- **shadcn/ui**: Modern UI component library setup
+### Installation
 
-## Template System
+```bash
+npm install -g initsu
+```
 
-The tool includes a modular template system that can be extended:
+### Usage
 
-### Available Templates
+```bash
+# Interactive mode - just run the command
+initsu
 
-- `default`: Standard Next.js template with custom styling
+# Or specify a project name directly
+initsu my-awesome-project
+```
 
-### Future Templates
+## What You Get
 
-The architecture supports adding more templates:
+### Next.js Projects
 
-- Blog template
-- E-commerce template
-- Dashboard template
-- Portfolio template
+- **Latest Next.js** with App Router or Pages Router
+- **TypeScript or JavaScript** - your choice
+- **ESLint + Prettier** - code quality and formatting
+- **Tailwind CSS** - utility-first styling
+- **Husky + lint-staged** - git hooks for quality
+- **shadcn/ui** - beautiful component system (optional)
+- **Custom import aliases** - cleaner imports
+
+### TypeScript Projects
+
+- **Modern TypeScript** with latest compiler options
+- **ESLint + Prettier** - consistent code style
+- **Husky pre-commit hooks** - automated quality checks
+- **Organized structure** - src/ directory with proper setup
+- **Package manager choice** - npm, pnpm, yarn, or bun
+
+## Interactive Experience
+
+Initsu provides a guided, interactive experience:
+
+1. **Project Name**: Enter your project name
+2. **Project Type**: Choose Next.js or TypeScript
+3. **Configuration Options**: Customize your setup
+4. **Package Manager**: Pick your preferred tool
+5. **Additional Tools**: Add Prettier, ESLint, Husky, etc.
 
 ## Development
 
-### Setup
+### Local Development
 
 ```bash
-git clone <repository-url>
-cd nextjs-cli-configurator
-npm install
+# Clone the repository
+git clone https://github.com/dharminnagar/cli-tool.git
+cd cli-tool
+
+# Install dependencies
+bun install  # or npm install
+
+# Build the project
+bun run build
+
+# Test locally
+node dist/index.js my-test-project
 ```
 
-### Build
+### Available Scripts
 
 ```bash
-npm run build
-```
-
-### Development Mode
-
-```bash
-npm run dev
-```
-
-### Testing
-
-```bash
-npm test
+bun run build      # Compile TypeScript
+bun run dev        # Watch mode for development
+bun run lint       # Check code quality
+bun run lint:fix   # Fix linting issues and format code
+bun run test       # Run tests
 ```
 
 ## Project Structure
@@ -115,57 +124,74 @@ npm test
 ```
 src/
 ├── commands/
-│   └── init.ts              # Main initialization command
+│   └── init.ts                    # Main CLI command logic
 ├── utils/
-│   ├── configuration-manager.ts  # Handles Prettier, Husky, ESLint setup
-│   └── template-manager.ts       # Manages template application
-└── index.ts                 # CLI entry point
+│   ├── configuration-manager.ts  # Handles ESLint, Prettier, Husky setup
+│   ├── template-manager.ts       # Template system for project scaffolding
+│   └── github-fetcher.ts         # GitHub repository integration
+├── config/
+│   └── templates.ts              # Template configurations
+└── index.ts                      # CLI entry point
 ```
 
-## Configuration Details
+## Code Quality Features
 
-### Prettier Configuration
+### ESLint Configuration
 
-- Semi-colons enabled
-- Single quotes
-- Trailing commas (ES5)
-- 80 character line width
-- 2-space indentation
+- **TypeScript-first**: Modern ESLint v9 with flat config
+- **Strict rules**: Catches unused variables, missing types
+- **Auto-fix**: Many issues fixed automatically
+- **Performance**: Uses cache for faster subsequent runs
 
-### Husky & lint-staged
+### Prettier Setup
 
-- Pre-commit hooks for linting and formatting
-- Automatic formatting on commit
-- Prevents commits with linting errors
+- **Consistent formatting**: Double quotes, 2-space indentation
+- **ES5 trailing commas**: Cross-browser compatibility
+- **Bracket same line**: Compact JSX formatting
+- **Auto-formatting**: Runs on save and pre-commit
 
-### ESLint Integration
+### Husky Git Hooks
 
-- Prettier integration
-- Next.js recommended rules
-- TypeScript support
+- **Pre-commit**: Runs lint-staged on staged files only
+- **Prevents bad commits**: Blocks commits with linting errors
+- **Fast execution**: Only processes staged files
+- **Automatic setup**: Configured during project initialization
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+We welcome contributions! Here's how to get started:
 
-## Roadmap
+1. **Fork** the repository
+2. **Clone** your fork locally
+3. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+4. **Make** your changes
+5. **Test** thoroughly: `bun run build && bun run lint`
+6. **Commit** your changes: `git commit -m 'Add amazing feature'`
+7. **Push** to your branch: `git push origin feature/amazing-feature`
+8. **Open** a Pull Request
 
-- [ ] Additional templates (blog, e-commerce, dashboard)
-- [ ] Custom configuration profiles
-- [ ] Plugin system for third-party integrations
-- [ ] Template marketplace
-- [ ] Configuration presets
+## Requirements
+
+- **Node.js**: >= 16.0.0
+- **Package Manager**: npm, pnpm, yarn, or bun
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Credits
+## Acknowledgments
 
-- Built on top of [create-next-app](https://nextjs.org/docs/pages/api-reference/create-next-app)
-- Uses configuration patterns from [Next.js Template](https://github.com/dharminnagar/nextjs-template)
-- Configuration setup inspired by [this gist](https://gist.github.com/dharminnagar/27a8f8263d33c09f409c51bb8b195a08)
+- **Next.js team** for the amazing framework
+- **TypeScript team** for type safety
+- **ESLint & Prettier** for code quality tools
+- **Open source community** for inspiration and feedback
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [Dharmin Nagar](https://github.com/dharminnagar)**
+
+_If Initsu helps you, consider giving it a ⭐ on GitHub!_
+
+</div>

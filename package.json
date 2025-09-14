@@ -1,11 +1,24 @@
 {
   "name": "initsu",
   "version": "1.0.0",
-  "description": "A CLI tool to initialize and configure Next.js repositories with various templates and configurations",
+  "description": "A modern CLI tool to scaffold Next.js and TypeScript projects with best practices",
   "main": "dist/index.js",
   "bin": {
     "initsu": "dist/index.js"
   },
+  "homepage": "https://github.com/dharminnagar/initsu#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dharminnagar/initsu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dharminnagar/initsu/issues"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
