@@ -11,6 +11,11 @@ export interface InitOptions {
   template?: string;
   skipInstall?: boolean;
   git?: boolean;
+  packageManager?: 'npm' | 'pnpm' | 'yarn' | 'bun';
+  linter?: 'eslint' | 'biome' | 'none';
+  turbopack?: boolean;
+  empty?: boolean;
+  api?: boolean;
 }
 
 export async function initCommand(projectName?: string, options: InitOptions = {}) {
@@ -75,10 +80,15 @@ async function getNextjsOptions() {
       default: true
     },
     {
-      type: 'confirm',
-      name: 'eslint',
-      message: 'Would you like to use ESLint?',
-      default: true
+      type: 'list',
+      name: 'linter',
+      message: 'Which linter would you like to use?',
+      choices: [
+        { name: 'ESLint', value: 'eslint' },
+        { name: 'Biome', value: 'biome' },
+        { name: 'None', value: 'none' }
+      ],
+      default: 'eslint'
     },
     {
       type: 'confirm',
@@ -97,6 +107,12 @@ async function getNextjsOptions() {
       name: 'appRouter',
       message: 'Would you like to use App Router? (recommended)',
       default: true
+    },
+    {
+      type: 'confirm',
+      name: 'turbopack',
+      message: 'Would you like to enable Turbopack for development?',
+      default: false
     },
     {
       type: 'confirm',
@@ -150,11 +166,12 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
   const args = ['create-next-app@latest', projectName];
 
   // Add flags based on user choices
-  if (nextjsOptions.typescript) args.push('--typescript');
-  else args.push('--javascript');
-
-  if (nextjsOptions.eslint) args.push('--eslint');
-  else args.push('--no-eslint');
+  if (nextjsOptions.typescript) args.push('--ts');
+  else args.push('--js');
+ 
+  if (nextjsOptions.linter === 'eslint') args.push('--eslint');
+  else if (nextjsOptions.linter === 'biome') args.push('--biome');
+  else if (nextjsOptions.linter === 'none') args.push('--no-linter');
 
   if (nextjsOptions.tailwind) args.push('--tailwind');
   else args.push('--no-tailwind');
@@ -167,13 +184,42 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
 
   if (nextjsOptions.customAlias) args.push('--import-alias', nextjsOptions.customAlias);
 
+  // Package manager selection
+  if (options.packageManager) {
+    switch (options.packageManager) {
+      case 'npm':
+        args.push('--use-npm');
+        break;
+      case 'pnpm':
+        args.push('--use-pnpm');
+        break;
+      case 'yarn':
+        args.push('--use-yarn');
+        break;
+      case 'bun':
+        args.push('--use-bun');
+        break;
+    }
+  }
+
+  // Additional options
+  if (options.skipInstall) args.push('--skip-install');
+  if (options.git === false) args.push('--disable-git');
+  if (nextjsOptions.turbopack) args.push('--turbopack');
+  else args.push('--no-turbopack'); // Explicitly set no-turbopack to avoid prompts
+  if (options.empty) args.push('--empty');
+  if (options.api) args.push('--api');
+  
+  // Add --yes flag to skip all interactive prompts
+  args.push('--yes');
+
   return new Promise<void>((resolve, reject) => {
     const child = spawn('npx', args, {
-      stdio: 'pipe',
+      stdio: 'inherit',
       shell: true
     });
 
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       if (code === 0) {
         spinner.succeed('Next.js application created successfully');
         resolve();
@@ -186,6 +232,17 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
     child.on('error', (error) => {
       spinner.fail('Failed to create Next.js application');
       reject(error);
+    });
+
+    // Add a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      child.kill();
+      spinner.fail('Next.js application creation timed out');
+      reject(new Error('Process timed out after 5 minutes'));
+    }, 5 * 60 * 1000); // 5 minutes
+
+    child.on('close', () => {
+      clearTimeout(timeout);
     });
   });
 }
