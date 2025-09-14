@@ -1,49 +1,61 @@
-import https from 'https';
-import { GitHubConfig } from '../config/templates';
+import https from "https";
+import { GitHubConfig } from "../config/templates";
 
 export class GitHubFetcher {
-  static async fetchFileContent(config: GitHubConfig, filePath: string): Promise<string> {
+  static async fetchFileContent(
+    config: GitHubConfig,
+    filePath: string
+  ): Promise<string> {
     const url = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${filePath}`;
-    
+
     return new Promise((resolve, reject) => {
-      https.get(url, (response) => {
-        let data = '';
-        
-        response.on('data', (chunk) => {
-          data += chunk;
+      https
+        .get(url, (response) => {
+          let data = "";
+
+          response.on("data", (chunk) => {
+            data += chunk;
+          });
+
+          response.on("end", () => {
+            if (response.statusCode === 200) {
+              resolve(data);
+            } else {
+              reject(
+                new Error(`Failed to fetch ${filePath}: ${response.statusCode}`)
+              );
+            }
+          });
+        })
+        .on("error", (error) => {
+          reject(error);
         });
-        
-        response.on('end', () => {
-          if (response.statusCode === 200) {
-            resolve(data);
-          } else {
-            reject(new Error(`Failed to fetch ${filePath}: ${response.statusCode}`));
-          }
-        });
-      }).on('error', (error) => {
-        reject(error);
-      });
     });
   }
 
-  static async fetchMultipleFiles(config: GitHubConfig): Promise<Record<string, string>> {
+  static async fetchMultipleFiles(
+    config: GitHubConfig
+  ): Promise<Record<string, string>> {
     const files: Record<string, string> = {};
-    
+
     for (const filePath of config.files) {
       try {
         files[filePath] = await this.fetchFileContent(config, filePath);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.warn(`Warning: Could not fetch ${filePath}, using default content`);
+        console.warn(
+          `Warning: Could not fetch ${filePath}, using default content`
+        );
         // Fallback to default content if fetch fails
         files[filePath] = this.getDefaultContent(filePath);
       }
     }
-    
+
     return files;
   }
 
   private static getDefaultContent(filePath: string): string {
-    if (filePath.endsWith('page.tsx')) {
+    if (filePath.endsWith("page.tsx")) {
       return `export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -56,7 +68,7 @@ export class GitHubFetcher {
 }`;
     }
 
-    if (filePath.endsWith('globals.css')) {
+    if (filePath.endsWith("globals.css")) {
       return `@tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -86,6 +98,6 @@ body {
 }`;
     }
 
-    return '';
+    return "";
   }
 }

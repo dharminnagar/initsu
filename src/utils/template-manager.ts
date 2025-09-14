@@ -1,9 +1,8 @@
-import fs from 'fs-extra';
-import path from 'path';
-import ora from 'ora';
-import chalk from 'chalk';
-import { GitHubFetcher } from './github-fetcher';
-import { TEMPLATE_CONFIGS } from '../config/templates';
+import fs from "fs-extra";
+import path from "path";
+import ora from "ora";
+import { GitHubFetcher } from "./github-fetcher";
+import { TEMPLATE_CONFIGS } from "../config/templates";
 
 export interface Template {
   name: string;
@@ -22,7 +21,7 @@ export class TemplateManager {
 
   constructor(projectName: string) {
     this.projectPath = path.resolve(process.cwd(), projectName);
-    this.templatesPath = path.join(__dirname, '..', 'templates');
+    this.templatesPath = path.join(__dirname, "..", "templates");
   }
 
   async applyTemplate(templateName: string): Promise<void> {
@@ -40,7 +39,7 @@ export class TemplateManager {
 
   private async getTemplate(templateName: string): Promise<Template> {
     switch (templateName) {
-      case 'default':
+      case "default":
         return this.getDefaultTemplate();
       default:
         throw new Error(`Template "${templateName}" not found`);
@@ -51,24 +50,26 @@ export class TemplateManager {
     // Fetch template files from GitHub repo
     const config = TEMPLATE_CONFIGS.default;
     const files = await GitHubFetcher.fetchMultipleFiles(config);
-    
+
     return {
-      name: 'default',
-      description: 'Default Next.js template with custom page content from GitHub',
+      name: "default",
+      description:
+        "Default Next.js template with custom page content from GitHub",
       files: Object.entries(files).map(([filePath, content]) => ({
         path: filePath,
-        content
-      }))
+        content,
+      })),
     };
   }
 
   async listAvailableTemplates(): Promise<Template[]> {
     return [
       {
-        name: 'default',
-        description: 'Default Next.js template with custom styling from GitHub repo',
-        files: []
-      }
+        name: "default",
+        description:
+          "Default Next.js template with custom styling from GitHub repo",
+        files: [],
+      },
     ];
   }
 

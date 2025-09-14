@@ -11,7 +11,9 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "jest",
-    "prepare": "npm run build"
+    "lint": "eslint . && prettier --check .",
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "prepare": "husky"
   },
   "keywords": [
     "nextjs",
@@ -31,16 +33,30 @@
     "ora": "^7.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
     "@types/figlet": "^1.7.0",
     "@types/fs-extra": "^11.0.0",
     "@types/inquirer": "^9.0.0",
     "@types/jest": "^29.0.0",
     "@types/node": "^20.0.0",
+    "eslint": "^9.35.0",
+    "globals": "^16.4.0",
+    "husky": "^9.1.7",
     "jest": "^29.0.0",
+    "jiti": "^2.5.1",
+    "lint-staged": "^16.1.6",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.43.0"
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,js}": "eslint --cache --fix",
+    "*.{ts,js,css,md}": "prettier --write",
+    "*.js": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
