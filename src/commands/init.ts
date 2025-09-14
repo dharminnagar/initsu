@@ -454,7 +454,7 @@ async function createTypescriptProject(projectName: string, options: InitOptions
   const typescriptOptions = await getTypescriptOptions();
   
   // Create TypeScript project directory and initialize
-  await initializeNextjsApp(projectName, typescriptOptions, options);
+  await initializeTypescriptApp(projectName, typescriptOptions, options);
 
   // Get additional configuration options
   const configOptions = await getTypescriptConfigurationOptions();
