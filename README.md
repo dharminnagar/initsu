@@ -15,11 +15,13 @@ A powerful CLI tool to initialize and configure Next.js repositories with variou
 ## Installation
 
 ### Global Installation
+
 ```bash
 npm install -g nextjs-cli-configurator
 ```
 
 ### Local Installation
+
 ```bash
 npm install nextjs-cli-configurator
 ```
@@ -27,16 +29,19 @@ npm install nextjs-cli-configurator
 ## Usage
 
 ### Initialize a new Next.js project
+
 ```bash
 nextjs-init init my-project
 ```
 
 ### Initialize with options
+
 ```bash
 nextjs-init init my-project --template default --skip-install
 ```
 
 ### Interactive mode
+
 ```bash
 nextjs-init init
 ```
@@ -46,6 +51,7 @@ nextjs-init init
 The CLI will interactively ask you about:
 
 ### Next.js Setup
+
 - TypeScript support
 - ESLint configuration
 - Tailwind CSS integration
@@ -54,6 +60,7 @@ The CLI will interactively ask you about:
 - Custom import aliases
 
 ### Additional Configurations
+
 - **Prettier**: Code formatting with opinionated defaults
 - **Husky**: Git hooks for pre-commit linting and formatting
 - **shadcn/ui**: Modern UI component library setup
@@ -63,10 +70,13 @@ The CLI will interactively ask you about:
 The tool includes a modular template system that can be extended:
 
 ### Available Templates
+
 - `default`: Standard Next.js template with custom styling
 
 ### Future Templates
+
 The architecture supports adding more templates:
+
 - Blog template
 - E-commerce template
 - Dashboard template
@@ -75,6 +85,7 @@ The architecture supports adding more templates:
 ## Development
 
 ### Setup
+
 ```bash
 git clone <repository-url>
 cd nextjs-cli-configurator
@@ -82,16 +93,19 @@ npm install
 ```
 
 ### Build
+
 ```bash
 npm run build
 ```
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
 
 ### Testing
+
 ```bash
 npm test
 ```
@@ -111,6 +125,7 @@ src/
 ## Configuration Details
 
 ### Prettier Configuration
+
 - Semi-colons enabled
 - Single quotes
 - Trailing commas (ES5)
@@ -118,11 +133,13 @@ src/
 - 2-space indentation
 
 ### Husky & lint-staged
+
 - Pre-commit hooks for linting and formatting
 - Automatic formatting on commit
 - Prevents commits with linting errors
 
 ### ESLint Integration
+
 - Prettier integration
 - Next.js recommended rules
 - TypeScript support
