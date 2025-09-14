@@ -22,7 +22,6 @@ export async function initCommand(projectName?: string, options: InitOptions = {
   console.log(chalk.blue.bold('\n🚀 Next.js CLI Configurator\n'));
 
   try {
-    // Get project name if not provided
     if (!projectName) {
       const namePrompt = await inquirer.prompt([
         {
@@ -53,7 +52,7 @@ export async function initCommand(projectName?: string, options: InitOptions = {
     const configOptions = await getConfigurationOptions();
 
     // Apply configurations
-    const configManager = new ConfigurationManager(projectName!);
+    const configManager = new ConfigurationManager(projectName!, nextjsOptions.packageManager || 'npm');
     await configManager.applyConfigurations(configOptions);
 
     // Apply template
@@ -63,7 +62,10 @@ export async function initCommand(projectName?: string, options: InitOptions = {
     console.log(chalk.green.bold(`\n✅ Project ${projectName} has been successfully created and configured!\n`));
     console.log(chalk.cyan('Next steps:'));
     console.log(chalk.cyan(`  cd ${projectName}`));
-    console.log(chalk.cyan('  npm run dev'));
+    
+    const packageManager = nextjsOptions.packageManager || 'npm';
+    const devCommand = packageManager === 'npm' ? 'npm run dev' : `${packageManager} dev`;
+    console.log(chalk.cyan(`  ${devCommand}`));
 
   } catch (error) {
     console.error(chalk.red.bold('\n❌ Error creating project:'), error);
@@ -113,6 +115,18 @@ async function getNextjsOptions() {
       name: 'turbopack',
       message: 'Would you like to enable Turbopack for development?',
       default: false
+    },
+    {
+      type: 'list',
+      name: 'packageManager',
+      message: 'Which package manager would you like to use?',
+      choices: [
+        { name: 'npm', value: 'npm' },
+        { name: 'pnpm', value: 'pnpm' },
+        { name: 'Yarn', value: 'yarn' },
+        { name: 'Bun', value: 'bun' }
+      ],
+      default: 'npm'
     },
     {
       type: 'confirm',
@@ -185,8 +199,8 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
   if (nextjsOptions.customAlias) args.push('--import-alias', nextjsOptions.customAlias);
 
   // Package manager selection
-  if (options.packageManager) {
-    switch (options.packageManager) {
+  if (nextjsOptions.packageManager) {
+    switch (nextjsOptions.packageManager) {
       case 'npm':
         args.push('--use-npm');
         break;
@@ -206,7 +220,7 @@ async function createNextjsApp(projectName: string, nextjsOptions: any, options:
   if (options.skipInstall) args.push('--skip-install');
   if (options.git === false) args.push('--disable-git');
   if (nextjsOptions.turbopack) args.push('--turbopack');
-  else args.push('--no-turbopack'); // Explicitly set no-turbopack to avoid prompts
+  else args.push('--no-turbopack'); 
   if (options.empty) args.push('--empty');
   if (options.api) args.push('--api');
   

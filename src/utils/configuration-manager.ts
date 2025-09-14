@@ -12,9 +12,11 @@ export interface ConfigurationOptions {
 
 export class ConfigurationManager {
   private projectPath: string;
+  private packageManager: string;
 
-  constructor(projectName: string) {
+  constructor(projectName: string, packageManager: string = 'npm') {
     this.projectPath = path.resolve(process.cwd(), projectName);
+    this.packageManager = packageManager;
   }
 
   async applyConfigurations(options: ConfigurationOptions): Promise<void> {
@@ -35,8 +37,8 @@ export class ConfigurationManager {
     const spinner = ora('Setting up Prettier...').start();
 
     try {
-      // Install Prettier and related packages
-      await this.runCommand('npm', ['install', '--save-dev', 'prettier', 'eslint-config-prettier', 'eslint-plugin-prettier']);
+      // Install Prettier and related packages using the selected package manager
+      await this.installPackages(['prettier', 'eslint-config-prettier', 'eslint-plugin-prettier'], true);
 
       // Create .prettierrc file
       const prettierConfig = {
@@ -85,8 +87,8 @@ build
     const spinner = ora('Setting up Husky...').start();
 
     try {
-      // Install Husky and lint-staged
-      await this.runCommand('npm', ['install', '--save-dev', 'husky', 'lint-staged']);
+      // Install Husky and lint-staged using the selected package manager
+      await this.installPackages(['husky', 'lint-staged'], true);
 
       // Initialize Husky
       await this.runCommand('npx', ['husky', 'init']);
@@ -161,6 +163,37 @@ npx lint-staged
 
       await fs.writeJson(eslintConfigPath, eslintConfig, { spaces: 2 });
     }
+  }
+
+  private async installPackages(packages: string[], isDev: boolean = false): Promise<void> {
+    const args: string[] = [];
+    
+    switch (this.packageManager) {
+      case 'npm':
+        args.push('install');
+        if (isDev) args.push('--save-dev');
+        args.push(...packages);
+        break;
+      case 'yarn':
+        args.push('add');
+        if (isDev) args.push('--dev');
+        args.push(...packages);
+        break;
+      case 'pnpm':
+        args.push('add');
+        if (isDev) args.push('--save-dev');
+        args.push(...packages);
+        break;
+      case 'bun':
+        args.push('add');
+        if (isDev) args.push('--dev');
+        args.push(...packages);
+        break;
+      default:
+        throw new Error(`Unsupported package manager: ${this.packageManager}`);
+    }
+
+    await this.runCommand(this.packageManager, args);
   }
 
   private async runCommand(command: string, args: string[]): Promise<void> {
