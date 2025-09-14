@@ -211,7 +211,7 @@ async function getTypescriptConfigurationOptions() {
   ]);
 }
 
-async function createTypescriptApp(projectName: string, typescriptOptions: any, options: InitOptions) {
+async function initializeTypescriptApp(projectName: string, typescriptOptions: any, options: InitOptions) {
   const spinner = ora('Creating TypeScript project...').start();
 
   try {
@@ -335,7 +335,7 @@ function getPackageInstallArgs(packageManager: string): string[] {
   }
 }
 
-async function createNextjsApp(projectName: string, nextjsOptions: any, options: InitOptions) {
+async function initializeNextjsApp(projectName: string, nextjsOptions: any, options: InitOptions) {
   const spinner = ora('Creating Next.js application...').start();
 
   const args = ['create-next-app@latest', projectName];
@@ -427,7 +427,7 @@ async function createNextjsProject(projectName: string, options: InitOptions) {
   const nextjsOptions = await getNextjsOptions();
   
   // Create Next.js app
-  await createNextjsApp(projectName, nextjsOptions, options);
+  await initializeNextjsApp(projectName, nextjsOptions, options);
 
   // Get additional configuration options
   const configOptions = await getConfigurationOptions();
@@ -454,7 +454,7 @@ async function createTypescriptProject(projectName: string, options: InitOptions
   const typescriptOptions = await getTypescriptOptions();
   
   // Create TypeScript project directory and initialize
-  await createTypescriptApp(projectName, typescriptOptions, options);
+  await initializeNextjsApp(projectName, typescriptOptions, options);
 
   // Get additional configuration options
   const configOptions = await getTypescriptConfigurationOptions();
