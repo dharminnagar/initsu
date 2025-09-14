@@ -9,12 +9,8 @@ const program = new Command();
 
 program
   .name('initsu')
-  .description('A CLI tool to initialize and configure Next.js repositories')
-  .version(version);
-
-program
-  .command('init')
-  .description('Initialize a new Next.js project with custom configurations')
+  .description('A CLI tool to initialize and configure projects')
+  .version(version)
   .argument('[project-name]', 'Name of the project directory')
   .option('-t, --template <template>', 'Template to use', 'default')
   .option('--skip-install', 'Skip package installation')
