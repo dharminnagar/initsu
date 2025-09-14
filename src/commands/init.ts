@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { ConfigurationManager } from '../utils/configuration-manager';
 import { TemplateManager } from '../utils/template-manager';
+import figlet from 'figlet';
 
 export interface InitOptions {
   template?: string;
@@ -19,7 +20,18 @@ export interface InitOptions {
 }
 
 export async function initCommand(projectName?: string, options: InitOptions = {}) {
-  console.log(chalk.blue.bold('\n🚀 Project CLI Configurator\n'));
+  // Display banner
+  console.log("\n" + chalk.bold.cyan(
+    figlet.textSync("Initsu", {
+      font: "Speed",
+      horizontalLayout: "default",
+      verticalLayout: "default",
+      width: 100,
+      whitespaceBreak: true
+    })
+  ));
+  
+  console.log(chalk.bold.white("Setup. Code. Ship.\n"));
 
   try {
     if (!projectName) {
