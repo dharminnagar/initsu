@@ -1,10 +1,10 @@
 {
-  "name": "nextjs-cli-configurator",
+  "name": "initsu",
   "version": "1.0.0",
   "description": "A CLI tool to initialize and configure Next.js repositories with various templates and configurations",
   "main": "dist/index.js",
   "bin": {
-    "nextjs-init": "dist/index.js"
+    "initsu": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -20,7 +20,7 @@
     "configuration",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Dharmin Nagar",
   "license": "MIT",
   "dependencies": {
     "commander": "^11.0.0",

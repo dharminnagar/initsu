@@ -8,7 +8,7 @@ import { version } from '../package.json';
 const program = new Command();
 
 program
-  .name('nextjs-init')
+  .name('initsu')
   .description('A CLI tool to initialize and configure Next.js repositories')
   .version(version);
 
