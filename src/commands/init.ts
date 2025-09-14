@@ -83,6 +83,18 @@ export async function initCommand(projectName?: string, options: InitOptions = {
 async function getNextjsOptions() {
   const answers = await inquirer.prompt([
     {
+      type: 'list',
+      name: 'packageManager',
+      message: 'Which package manager would you like to use?',
+      choices: [
+        { name: 'npm', value: 'npm' },
+        { name: 'pnpm', value: 'pnpm' },
+        { name: 'yarn', value: 'yarn' },
+        { name: 'bun', value: 'bun' }
+      ],
+      default: 'npm'
+    },
+    {
       type: 'confirm',
       name: 'typescript',
       message: 'Would you like to use TypeScript?',
@@ -122,18 +134,6 @@ async function getNextjsOptions() {
       name: 'turbopack',
       message: 'Would you like to enable Turbopack for development?',
       default: false
-    },
-    {
-      type: 'list',
-      name: 'packageManager',
-      message: 'Which package manager would you like to use?',
-      choices: [
-        { name: 'npm', value: 'npm' },
-        { name: 'pnpm', value: 'pnpm' },
-        { name: 'Yarn', value: 'yarn' },
-        { name: 'Bun', value: 'bun' }
-      ],
-      default: 'npm'
     },
     {
       type: 'confirm',
@@ -188,10 +188,10 @@ async function getTypescriptOptions() {
       name: 'packageManager',
       message: 'Which package manager would you like to use?',
       choices: [
-        { name: 'Bun (recommended)', value: 'bun' },
+        { name: 'bun (recommended)', value: 'bun' },
         { name: 'npm', value: 'npm' },
         { name: 'pnpm', value: 'pnpm' },
-        { name: 'Yarn', value: 'yarn' }
+        { name: 'yarn', value: 'yarn' }
       ],
       default: 'bun'
     }
@@ -438,11 +438,11 @@ async function createNextjsProject(projectName: string, options: InitOptions) {
   // Get Next.js initialization options
   const nextjsOptions = await getNextjsOptions();
   
-  // Create Next.js app
-  await initializeNextjsApp(projectName, nextjsOptions, options);
+  console.log();
 
-  // Get additional configuration options
   const configOptions = await getConfigurationOptions();
+  
+  await initializeNextjsApp(projectName, nextjsOptions, options);
 
   // Apply configurations
   const configManager = new ConfigurationManager(projectName, nextjsOptions.packageManager || 'npm');
@@ -465,11 +465,12 @@ async function createTypescriptProject(projectName: string, options: InitOptions
   // Get TypeScript project options
   const typescriptOptions = await getTypescriptOptions();
   
+  console.log();
+  
+  const configOptions = await getTypescriptConfigurationOptions();
+
   // Create TypeScript project directory and initialize
   await initializeTypescriptApp(projectName, typescriptOptions, options);
-
-  // Get additional configuration options
-  const configOptions = await getTypescriptConfigurationOptions();
 
   // Apply configurations
   const configManager = new ConfigurationManager(projectName, typescriptOptions.packageManager || 'bun');
