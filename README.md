@@ -66,8 +66,10 @@ initsu my-awesome-project
 
 - **Latest Next.js** with App Router or Pages Router
 - **TypeScript or JavaScript** - your choice
+- **React Compiler** - experimental React optimization (optional)
+- **Turbopack** - faster development builds (optional)
 - **ESLint + Prettier** - code quality and formatting
-- **Tailwind CSS** - utility-first styling
+- **Tailwind CSS** - utility-first styling (optional)
 - **Husky + lint-staged** - git hooks for quality
 - **shadcn/ui** - beautiful component system (optional)
 - **Custom import aliases** - cleaner imports

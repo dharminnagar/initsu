@@ -30,6 +30,7 @@ export interface NextjsOptions {
   srcDir: boolean;
   appRouter: boolean;
   turbopack: boolean;
+  reactCompiler: boolean;
   packageManager: "npm" | "pnpm" | "yarn" | "bun";
   importAlias: boolean;
   customAlias?: string;
@@ -154,6 +155,12 @@ async function getNextjsOptions() {
       type: "confirm",
       name: "turbopack",
       message: "Would you like to enable Turbopack for development?",
+      default: false,
+    },
+    {
+      type: "confirm",
+      name: "reactCompiler",
+      message: "Would you like to enable the React Compiler?",
       default: false,
     },
     {
@@ -430,6 +437,8 @@ async function initializeNextjsApp(
   if (options.git === false) args.push("--disable-git");
   if (nextjsOptions.turbopack) args.push("--turbopack");
   else args.push("--no-turbopack");
+  if (nextjsOptions.reactCompiler) args.push("--react-compiler");
+  else args.push("--no-react-compiler");
   if (options.empty) args.push("--empty");
   if (options.api) args.push("--api");
 
