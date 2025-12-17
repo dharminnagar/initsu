@@ -24,6 +24,7 @@ export interface TypescriptOptions {
 }
 
 export interface NextjsOptions {
+  version: string;
   typescript: boolean;
   linter: "eslint" | "biome" | "none";
   tailwind: boolean;
@@ -106,6 +107,19 @@ async function getNextjsOptions() {
   const answers = await inquirer.prompt([
     {
       type: "list",
+      name: "version",
+      message: "Which Next.js version would you like to use?",
+      choices: [
+        { name: "Latest (recommended)", value: "latest" },
+        { name: "Next.js 15", value: "15" },
+        { name: "Next.js 14", value: "14" },
+        { name: "Next.js 13", value: "13" },
+        { name: "Custom version", value: "custom" },
+      ],
+      default: "latest",
+    },
+    {
+      type: "list",
       name: "packageManager",
       message: "Which package manager would you like to use?",
       choices: [
@@ -170,6 +184,27 @@ async function getNextjsOptions() {
       default: false,
     },
   ]);
+
+  if (answers.version === "custom") {
+    const versionAnswer = await inquirer.prompt([
+      {
+        type: "input",
+        name: "customVersion",
+        message: "Enter the Next.js version (e.g., 14.2.3):",
+        validate: (input: string) => {
+          if (!input.trim()) {
+            return "Version is required";
+          }
+          // Basic version format validation
+          if (!/^\d+(\.\d+)?(\.\d+)?$/.test(input.trim())) {
+            return "Please enter a valid version format (e.g., 14.2.3 or 14.2 or 14)";
+          }
+          return true;
+        },
+      },
+    ]);
+    answers.version = versionAnswer.customVersion;
+  }
 
   if (answers.importAlias) {
     const aliasAnswer = await inquirer.prompt([
@@ -268,7 +303,6 @@ async function initializeTypescriptApp(
       const child = spawn("bun", args, {
         cwd: projectPath,
         stdio: "inherit",
-        shell: true,
       });
 
       child.on("close", (code) => {
@@ -392,7 +426,10 @@ async function initializeNextjsApp(
 ) {
   const spinner = ora("Creating Next.js application...").start();
 
-  const args = ["create-next-app@latest", projectName];
+  // Determine the version to use
+  const version =
+    nextjsOptions.version === "latest" ? "latest" : nextjsOptions.version;
+  const args = ["-y", `create-next-app@${version}`, projectName];
 
   // Add flags based on user choices
   if (nextjsOptions.typescript) args.push("--ts");
@@ -411,8 +448,9 @@ async function initializeNextjsApp(
   if (nextjsOptions.appRouter) args.push("--app");
   else args.push("--no-app");
 
-  if (nextjsOptions.customAlias)
-    args.push("--import-alias", nextjsOptions.customAlias);
+  // Always pass import alias to avoid interactive prompt
+  const importAlias = nextjsOptions.customAlias || "@/*";
+  args.push("--import-alias", importAlias);
 
   // Package manager selection
   if (nextjsOptions.packageManager) {
@@ -458,7 +496,6 @@ async function initializeNextjsApp(
 
     const child = spawn("npx", args, {
       stdio: "inherit",
-      shell: true,
     });
 
     child.on("close", (code, _signal) => {
