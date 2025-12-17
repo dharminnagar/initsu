@@ -586,7 +586,10 @@ async function createNextjsProject(
   await configManager.applyConfigurations(configOptions);
 
   // Apply template
-  const templateManager = new TemplateManager(projectName);
+  const templateManager = new TemplateManager(
+    projectName,
+    nextjsOptions.srcDir
+  );
   await templateManager.applyTemplate(options.template || "default");
 
   console.log(

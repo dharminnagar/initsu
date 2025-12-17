@@ -18,10 +18,12 @@ export interface TemplateFile {
 export class TemplateManager {
   private projectPath: string;
   private templatesPath: string;
+  private useSrcDir: boolean;
 
-  constructor(projectName: string) {
+  constructor(projectName: string, useSrcDir: boolean = true) {
     this.projectPath = path.resolve(process.cwd(), projectName);
     this.templatesPath = path.join(__dirname, "..", "templates");
+    this.useSrcDir = useSrcDir;
   }
 
   async applyTemplate(templateName: string): Promise<void> {
@@ -75,7 +77,14 @@ export class TemplateManager {
 
   private async applyTemplateFiles(template: Template): Promise<void> {
     for (const file of template.files) {
-      const filePath = path.join(this.projectPath, file.path);
+      // Adjust the file path based on srcDir option
+      let adjustedPath = file.path;
+      if (!this.useSrcDir && adjustedPath.startsWith("src/")) {
+        // Remove 'src/' prefix if not using src directory
+        adjustedPath = adjustedPath.replace(/^src\//, "");
+      }
+
+      const filePath = path.join(this.projectPath, adjustedPath);
       await fs.ensureDir(path.dirname(filePath));
       await fs.writeFile(filePath, file.content);
     }
