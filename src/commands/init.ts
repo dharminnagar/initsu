@@ -93,7 +93,17 @@ export async function initCommand(
     ]);
 
     if (projectTypeAnswer.projectType === "nextjs") {
-      await createNextjsProject(projectName!, options);
+      // Ask if they want the preset configuration
+      const presetAnswer = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "usePreset",
+          message: "Should I cook up the usual?",
+          default: true,
+        },
+      ]);
+
+      await createNextjsProject(projectName!, options, presetAnswer.usePreset);
     } else {
       await createTypescriptProject(projectName!, options);
     }
@@ -103,7 +113,41 @@ export async function initCommand(
   }
 }
 
-async function getNextjsOptions() {
+async function getNextjsOptions(usePreset: boolean = false) {
+  // If using preset, only ask for package manager
+  if (usePreset) {
+    const packageManagerAnswer = await inquirer.prompt([
+      {
+        type: "list",
+        name: "packageManager",
+        message: "Which package manager would you like to use?",
+        choices: [
+          { name: "npm", value: "npm" },
+          { name: "pnpm", value: "pnpm" },
+          { name: "yarn", value: "yarn" },
+          { name: "bun", value: "bun" },
+        ],
+        default: "yarn",
+      },
+    ]);
+
+    // Return preset configuration
+    return {
+      version: "latest",
+      packageManager: packageManagerAnswer.packageManager,
+      typescript: true,
+      linter: "eslint",
+      tailwind: true,
+      srcDir: false,
+      appRouter: true,
+      turbopack: false,
+      reactCompiler: false,
+      importAlias: false,
+      customAlias: undefined,
+    };
+  }
+
+  // Regular flow - ask all questions
   const answers = await inquirer.prompt([
     {
       type: "list",
@@ -517,13 +561,20 @@ async function initializeNextjsApp(
   });
 }
 
-async function createNextjsProject(projectName: string, options: InitOptions) {
+async function createNextjsProject(
+  projectName: string,
+  options: InitOptions,
+  usePreset: boolean = false
+) {
   // Get Next.js initialization options
-  const nextjsOptions = await getNextjsOptions();
+  const nextjsOptions = await getNextjsOptions(usePreset);
 
   console.log();
 
-  const configOptions = await getConfigurationOptions();
+  // Get configuration options - use preset if selected
+  const configOptions = usePreset
+    ? { prettier: true, husky: true, shadcn: true }
+    : await getConfigurationOptions();
 
   await initializeNextjsApp(projectName, nextjsOptions, options);
 
