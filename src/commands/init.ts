@@ -446,26 +446,6 @@ async function initializeNextjsApp(
   args.push("--yes");
 
   return new Promise<void>((resolve, reject) => {
-    const child = spawn("npx", args, {
-      stdio: "inherit",
-      shell: true,
-    });
-
-    child.on("close", (code, _signal) => {
-      if (code === 0) {
-        spinner.succeed("Next.js application created successfully");
-        resolve();
-      } else {
-        spinner.fail("Failed to create Next.js application");
-        reject(new Error(`create-next-app exited with code ${code}`));
-      }
-    });
-
-    child.on("error", (error) => {
-      spinner.fail("Failed to create Next.js application");
-      reject(error);
-    });
-
     // Add a timeout to prevent hanging
     const timeout = setTimeout(
       () => {
@@ -476,8 +456,26 @@ async function initializeNextjsApp(
       5 * 60 * 1000
     ); // 5 minutes
 
-    child.on("close", () => {
+    const child = spawn("npx", args, {
+      stdio: "inherit",
+      shell: true,
+    });
+
+    child.on("close", (code, _signal) => {
       clearTimeout(timeout);
+      if (code === 0) {
+        spinner.succeed("Next.js application created successfully");
+        resolve();
+      } else {
+        spinner.fail("Failed to create Next.js application");
+        reject(new Error(`create-next-app exited with code ${code}`));
+      }
+    });
+
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      spinner.fail("Failed to create Next.js application");
+      reject(error);
     });
   });
 }
