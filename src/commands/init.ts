@@ -65,17 +65,33 @@ export async function initCommand(
           name: "projectName",
           message: "What is your project name?",
           validate: (input: string) => {
-            if (!input.trim()) {
+            const trimmedInput = input.trim();
+
+            if (!trimmedInput) {
               return "Project name is required";
             }
-            if (!/^[a-z0-9-_]+$/i.test(input)) {
+            if (trimmedInput === ".") {
+              return true;
+            }
+            if (!/^[a-z0-9-_]+$/i.test(trimmedInput)) {
               return "Project name can only contain letters, numbers, hyphens, and underscores";
             }
             return true;
           },
         },
       ]);
-      projectName = namePrompt.projectName;
+      projectName = namePrompt.projectName.trim();
+    }
+
+    const isCurrentDir = projectName === ".";
+    const displayName = isCurrentDir
+      ? path.basename(process.cwd())
+      : projectName;
+
+    if (isCurrentDir) {
+      console.log(
+        chalk.dim(`Initializing in current directory: ${process.cwd()}\n`)
+      );
     }
 
     // Ask what type of project they want to create
@@ -103,9 +119,20 @@ export async function initCommand(
         },
       ]);
 
-      await createNextjsProject(projectName!, options, presetAnswer.usePreset);
+      await createNextjsProject(
+        projectName!,
+        options,
+        presetAnswer.usePreset,
+        isCurrentDir,
+        displayName!
+      );
     } else {
-      await createTypescriptProject(projectName!, options);
+      await createTypescriptProject(
+        projectName!,
+        options,
+        isCurrentDir,
+        displayName!
+      );
     }
   } catch (error) {
     console.error(chalk.red.bold("\n❌ Error creating project:"), error);
@@ -564,7 +591,9 @@ async function initializeNextjsApp(
 async function createNextjsProject(
   projectName: string,
   options: InitOptions,
-  usePreset: boolean = false
+  usePreset: boolean = false,
+  isCurrentDir: boolean = false,
+  displayName: string = projectName
 ) {
   // Get Next.js initialization options
   const nextjsOptions = await getNextjsOptions(usePreset);
@@ -594,11 +623,15 @@ async function createNextjsProject(
 
   console.log(
     chalk.green.bold(
-      `\n✅ Project ${projectName} has been successfully created and configured!\n`
+      `\n✅ Project ${displayName} has been successfully created and configured!\n`
     )
   );
   console.log(chalk.cyan("Next steps:"));
-  console.log(chalk.cyan(`  cd ${projectName}`));
+  if (isCurrentDir) {
+    console.log(chalk.cyan("  You're already in the project directory"));
+  } else {
+    console.log(chalk.cyan(`  cd ${projectName}`));
+  }
 
   const packageManager = nextjsOptions.packageManager || "npm";
   const devCommand =
@@ -608,7 +641,9 @@ async function createNextjsProject(
 
 async function createTypescriptProject(
   projectName: string,
-  options: InitOptions
+  options: InitOptions,
+  isCurrentDir: boolean = false,
+  displayName: string = projectName
 ) {
   // Get TypeScript project options
   const typescriptOptions = await getTypescriptOptions();
@@ -629,11 +664,15 @@ async function createTypescriptProject(
 
   console.log(
     chalk.green.bold(
-      `\n✅ TypeScript project ${projectName} has been successfully created and configured!\n`
+      `\n✅ TypeScript project ${displayName} has been successfully created and configured!\n`
     )
   );
   console.log(chalk.cyan("Next steps:"));
-  console.log(chalk.cyan(`  cd ${projectName}`));
+  if (isCurrentDir) {
+    console.log(chalk.cyan("  You're already in the project directory"));
+  } else {
+    console.log(chalk.cyan(`  cd ${projectName}`));
+  }
 
   const packageManager = typescriptOptions.packageManager || "bun";
   const runCommand =
